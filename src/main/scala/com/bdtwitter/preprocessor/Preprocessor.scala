@@ -1,3 +1,5 @@
+package com.bdtwitter.preprocessor
+
 import scala.io.Source
 
 object Preprocessor {
