@@ -11,15 +11,16 @@ object Preprocessor {
     RegexList += ("urls" -> "(https?\\://)\\S+")
     RegexList
   }
+
+  // Loading a stopwords list
   def getStopwordsList():Map[String, List[String]] = {
-    // Loading a stopwords list
     val stopwordsPath = "data/stopwords.txt"
     var Stopwords = Map[String, List[String]]()
-    Stopwords += ("english" -> Source.fromFile(stopwordsPath).getLines().toList)
+    val src = Source.fromFile(stopwordsPath)
+    Stopwords += ("english" -> src.getLines().toList)
+    src.close()
     Stopwords
   }
-
-
 
   // Utility function to remove particular regex from text
   def removeRegex(txt: String, regexList:Map[String,String], flag: String): String = {
@@ -58,5 +59,16 @@ object Preprocessor {
     text = removeRegex(text,regexList,"white_space")
     text = removeCustomWords(text, stopwordsList, "english")
     text
+  }
+  def Run(inPath:String,outPath:String) = {
+    val src = Source.fromFile(inPath)
+    val documentString = src.getLines().mkString(" ")
+    src.close()
+    val cleaned = cleanDocument(documentString)
+    // PrintWriter
+    import java.io._
+    val pw = new PrintWriter(new File(outPath))
+    pw.write(cleaned)
+    pw.close()
   }
 }
