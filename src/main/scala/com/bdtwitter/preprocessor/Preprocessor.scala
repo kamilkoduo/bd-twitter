@@ -16,7 +16,7 @@ object Preprocessor {
 
   // Loading a stopwords list
   def getStopwordsList():Map[String, List[String]] = {
-    val stopwordsPath = "data/stopwords.txt"
+    val stopwordsPath = "data/stopwords.csv"
     var Stopwords = Map[String, List[String]]()
     val src = Source.fromFile(stopwordsPath)
     Stopwords += ("english" -> src.getLines().toList)
@@ -49,6 +49,8 @@ object Preprocessor {
     words.mkString(" ")
   }
 
+//  def cleanDF()
+
   // Function to perform step by step text preprocessing and cleaning on documents
   def cleanDocument(document_text: String) : String = {
     val regexList = getRegexList()
@@ -73,4 +75,5 @@ object Preprocessor {
     pw.write(cleaned)
     pw.close()
   }
+
 }
