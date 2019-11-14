@@ -26,7 +26,7 @@ object  Main extends App {
     // print the training data
 //    trainingData.show()
 
-    val pipeline = Model.getPipeline()
+    val pipeline = Model.getPipelineDesTr()
     val model = Model.train(pipeline, trainingData)
 //    println("Loading model")
 //    val model = Model.load_model("data/models/logreg.model")
@@ -36,19 +36,21 @@ object  Main extends App {
     printf("Accuracy: %f \n",evaluated)
     println("Hello world!")
 
+    Model.eval_metrics(model, prediction)
+
     println("Saving model")
     Model.save_model(model,"data/models/logreg.model")
     Model.save_eval(evaluated, "data/models/logreg.csv")
-//
-    println("Loading model")
-    val loaded_model = Model.load_model("data/models/logreg.model")
+
+//    println("Loading model")
+//    val loaded_model = Model.load_model("data/models/logreg.model")
 //    print(loaded_model)
 
-    val prediction1 = Model.predict(loaded_model,testData)
-    val evaluated1 = Model.evaluate(prediction1)
-    prediction1.show(false)
-    printf("Accuracy: %f \n",evaluated1)
-    println("Hello world!")
+//    val prediction1 = Model.predict(loaded_model,testData)
+//    val evaluated1 = Model.evaluate(prediction1)
+//    prediction1.show(false)
+//    printf("Accuracy: %f \n",evaluated1)
+//    println("Hello world!")
 
   }
 

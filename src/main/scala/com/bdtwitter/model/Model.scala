@@ -1,12 +1,14 @@
 package com.bdtwitter.model
 
 import org.apache.spark.ml.{Pipeline, PipelineModel}
-import org.apache.spark.ml.classification.{LogisticRegression, ProbabilisticClassifier}
+import org.apache.spark.ml.classification.{DecisionTreeClassifier, LogisticRegression, ProbabilisticClassifier}
 import org.apache.spark.ml.evaluation.BinaryClassificationEvaluator
-import org.apache.spark.ml.feature.{HashingTF, RegexTokenizer, StopWordsRemover, StringIndexer, Tokenizer}
-import org.apache.spark.sql.{DataFrame}
+import org.apache.spark.ml.feature.{HashingTF, LabeledPoint, RegexTokenizer, StopWordsRemover, StringIndexer, Tokenizer}
+import org.apache.spark.mllib.evaluation.BinaryClassificationMetrics
+import org.apache.spark.sql.DataFrame
 
 import scala.io.Source
+import scala.util.Try
 
 object Model {
   def getIndexer(): StringIndexer = {
@@ -38,16 +40,31 @@ object Model {
       .setInputCol("tokens").setOutputCol("features")
     hashingTF
   }
-  def getClassifier()={
+  def getClassifierLogReg()={
     val clf = new LogisticRegression().setMaxIter(100).setRegParam(0.001)
     clf
   }
-  def getPipeline()={
+  def getClassifierDesTr()={
+    val clf = new DecisionTreeClassifier()
+      .setMaxDepth(5)
+    clf
+  }
+
+  def getPipelineLogReg()={
     val indexer = getIndexer()
     val tokenizer = getTokenizer()
     val stopWordsRemover = getStopwordRemover()
     val hashingTF = getHashingTF()
-    val classifier = getClassifier()
+    val classifier = getClassifierLogReg()
+    val pipeline = new Pipeline().setStages(Array(indexer,tokenizer,stopWordsRemover, hashingTF, classifier))
+    pipeline
+  }
+  def getPipelineDesTr()={
+    val indexer = getIndexer()
+    val tokenizer = getTokenizer()
+    val stopWordsRemover = getStopwordRemover()
+    val hashingTF = getHashingTF()
+    val classifier = getClassifierDesTr()
     val pipeline = new Pipeline().setStages(Array(indexer,tokenizer,stopWordsRemover, hashingTF, classifier))
     pipeline
   }
@@ -68,6 +85,41 @@ object Model {
       .setRawPredictionCol("prediction")
     evaluator.evaluate(testDF)
   }
+  def eval_metrics(model:PipelineModel, withPredictions:DataFrame) = {
+    val predLabels = withPredictions.select("prediction", "label")
+
+    val predLabelsRDD = predLabels.rdd.map(row => (row(0).toString.toDouble, row(1).toString.toDouble))
+    predLabelsRDD.collect().foreach(println)
+
+    val metrics = new BinaryClassificationMetrics(predLabelsRDD)
+
+    // Precision by threshold
+    val precision = metrics.precisionByThreshold
+    precision.foreach { case (t, p) =>
+      println(s"Threshold: $t, Precision: $p")
+    }
+
+    // Recall by threshold
+    val recall = metrics.recallByThreshold
+    recall.foreach { case (t, r) =>
+      println(s"Threshold: $t, Recall: $r")
+    }
+
+
+    // F-measure
+    val f1Score = metrics.fMeasureByThreshold
+    f1Score.foreach { case (t, f) =>
+      println(s"Threshold: $t, F-score: $f, Beta = 1")
+    }
+
+    val beta = 0.5
+    val f05Score = metrics.fMeasureByThreshold(beta)
+    f05Score.foreach { case (t, f) =>
+      println(s"Threshold: $t, F-score: $f, Beta = 0.5")
+    }
+
+
+  }
   def save_model(model:PipelineModel, path:String)={
     model.save(path)
   }
@@ -83,4 +135,5 @@ object Model {
     val model = PipelineModel.load(path)
     model
   }
+
 }
