@@ -2,7 +2,7 @@ import com.bdtwitter.preprocessor.Preprocessor
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.{SparkConf, SparkContext}
 import Preprocessor.cleanDocument
-import com.bdtwitter.model.Model
+import com.bdtwitter.model.{Model, ModelRandTree}
 
 object  Main extends App {
   def Run()={
@@ -25,22 +25,34 @@ object  Main extends App {
 
     // print the training data
 //    trainingData.show()
+    val indexer = ModelRandTree.getIndexerRandDesT(trainingData)
+    val tokenizer = ModelRandTree.getTokenizerRandDesT()
+    val stopWordsRemover = ModelRandTree.getStopwordRemover()
+    val hashingTF = ModelRandTree.getHashingTFRandDesT()
+    val dt = ModelRandTree.getClassifierRandDesT()
+    val pipelineRT = ModelRandTree.getPipelineRandDesT(trainingData)
+    val dtModel = ModelRandTree.trainRandDesT(pipelineRT, testData )
+    val predictionsRT = ModelRandTree.predictRandDesT(dtModel, testData)
+    val evaluateRT = ModelRandTree.evaluateRandDesT(dtModel, testData)
 
-    val pipeline = Model.getPipelineDesTr()
-    val model = Model.train(pipeline, trainingData)
-//    println("Loading model")
-//    val model = Model.load_model("data/models/logreg.model")
-    val prediction = Model.predict(model,testData)
-    val evaluated = Model.evaluate(prediction)
-    prediction.show(false)
-    printf("Accuracy: %f \n",evaluated)
-    println("Hello world!")
 
-    Model.eval_metrics(model, prediction)
 
-    println("Saving model")
-    Model.save_model(model,"data/models/logreg.model")
-    Model.save_eval(evaluated, "data/models/logreg.csv")
+
+//    val pipeline = Model.getPipelineLogReg()
+//    val model = Model.train(pipeline, trainingData)
+////    println("Loading model")
+////    val model = Model.load_model("data/models/logreg.model")
+//    val prediction = Model.predict(model,testData)
+//    val evaluated = Model.evaluate(prediction)
+//    prediction.show(false)
+//    printf("Accuracy: %f \n",evaluated)
+//    println("Hello world!")
+//
+//    Model.eval_metrics(model, prediction)
+
+    //println("Saving model")
+    //Model.save_model(model,"data/models/logreg.model")
+    //Model.save_eval(evaluated, "data/models/logreg.csv")
 
 //    println("Loading model")
 //    val loaded_model = Model.load_model("data/models/logreg.model")
